@@ -58,3 +58,27 @@ If you are using the 'desugared' logging for your app then you should use ToLogg
 # WithSkip variants
 
 If you encounter another interface requirement in your logging you can add additional skip levels to the oned discovered by the trainer routines by using ToSugaredWithSkip or ToLoggerWithSkip that take a skip factor following the level parameter.
+
+### redis-go/v9 example
+
+I recently encoutered in redis-go v9 the requirement to pass a logger that includes a context, something that the standard log package does not do but can easily be achieved with a small wrapper.
+
+Here's how that can be overcome.
+```
+// Create a new standard logger
+lp := log.New(log.Writer(), "", 0)
+// Wrap it using WithSkip value of 1
+logtozap.ToSugaredWithSkip(logger, zapcore.WarnLevel, 1, lp)
+// Use a wrapped logger calling the original logger
+redis.SetLogger(&redisLogger{l: lp})
+```
+```
+type redisLogger struct {
+	l *log.Logger
+}
+
+func (r redisLogger) Printf(ctx context.Context, s string, args ...interface{}) {
+	r.l.Printf(s, args...)
+}
+```
+Adding the wrapper, however, means that Redis is calling the previously wrapped log function with extra depth and without using the WithSkip feature to increase the stack depth one will get the line number of the Printf statement in the wrapper and not the calling function within the redis library in the message.
