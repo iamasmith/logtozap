@@ -2,7 +2,7 @@
 
 We love [Zap logger](https://github.com/uber-go/zap) for producing our structured logs.
 
-Many of the packages we use have logging implemted using the golang log package and as such any events they log mix in with our structured logs when using Zap.
+Many of the packages we use have logging implemented using the golang log package and as such any events they log mix in with our structured logs when using Zap.
 
 This package routes standard log messages through to a Zap logger that you provide ensuring..
 
@@ -50,7 +50,7 @@ logtozap.ToSugared(logger, zapcore.WarnLevel, redisLogger)
 redis.SetLogger(redisLogger)
 logtozap.ToSugared(logger, zapcore.DebugLevel)
 ```
-This would also cover off reusing code that had separate logs for stdout and stderr allowin you to route them with appropriate levels into Zap.
+This would also cover reusing code that had separate logs for stdout and stderr allowing you to route them with appropriate levels into Zap.
 
 
-If you are using desugared logging for your app then you should use ToLogger() instead of ToSugared - the parameters are the same.
+If you are using the 'desugared' logging for your app then you should use ToLogger() instead of ToSugared - the parameters are the same.
