@@ -54,3 +54,7 @@ This would also cover reusing code that had separate logs for stdout and stderr 
 
 
 If you are using the 'desugared' logging for your app then you should use ToLogger() instead of ToSugared - the parameters are the same.
+
+# WithSkip variants
+
+If you encounter another interface requirement in your logging you can add additional skip levels to the oned discovered by the trainer routines by using ToSugaredWithSkip or ToLoggerWithSkip that take a skip factor following the level parameter.

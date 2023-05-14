@@ -20,18 +20,27 @@ type logtozap struct {
 // If non provided will capture the default logger.
 // level specifies the log severity level for the Zap logger messages.
 func ToSugared(z *zap.SugaredLogger, level zapcore.Level, lp ...*log.Logger) {
-	route(z.Desugar().Core(), level, lp)
+	route(z.Desugar().Core(), level, 0, lp)
+}
+
+func ToSugaredWithSkip(z *zap.SugaredLogger, level zapcore.Level, addSkip int, lp ...*log.Logger) {
+	route(z.Desugar().Core(), level, addSkip, lp)
 }
 
 // Capture any specified loggers to the Zap Unsugared logger.
 func ToLogger(z *zap.Logger, level zapcore.Level, lp ...*log.Logger) {
-	route(z.Core(), level, lp)
+	route(z.Core(), level, 0, lp)
 }
 
-func route(z zapcore.Core, level zapcore.Level, lp []*log.Logger) {
+// Capture any specified loggers to the Zap Unsugared logger.
+func ToLoggerWithSkip(z *zap.Logger, level zapcore.Level, addSkip int, lp ...*log.Logger) {
+	route(z.Core(), level, addSkip, lp)
+}
+
+func route(z zapcore.Core, level zapcore.Level, addSkip int, lp []*log.Logger) {
 	var l logtozap
 	l.level = level
-	l.depth = tuner{}.unwind()
+	l.depth = tuner{}.unwind() + addSkip
 	l.zap = z
 	if len(lp) == 0 {
 		log.SetFlags(0)

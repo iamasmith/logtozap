@@ -1,6 +1,7 @@
 package logtozap
 
 import (
+	"context"
 	"log"
 	"testing"
 
@@ -16,6 +17,25 @@ func TestToSugared(t *testing.T) {
 	logger := zap.New(core).Sugar().With("myfield", "hassomething")
 	ToSugared(logger, zapcore.WarnLevel)
 	log.Print("many happy returns from the logger")
+	assert.Equal(1, logs.Len(), "must be equal")
+	ent := logs.All()[0]
+	assert.Contains(ent.Message, "many happy returns", "must contain")
+	assert.ElementsMatch(
+		ent.Context,
+		[]zap.Field{
+			{Key: "myfield", Type: zapcore.StringType, String: "hassomething"},
+		},
+	)
+}
+
+func TestToSugaredWithSkip(t *testing.T) {
+	assert := assert.New(t)
+	core, logs := observer.New(zap.InfoLevel)
+	lp := log.New(log.Writer(), "", 0)
+	ctxLog := ctxWrapper{l: lp}
+	logger := zap.New(core).Sugar().With("myfield", "hassomething")
+	ToSugaredWithSkip(logger, zapcore.WarnLevel, 1, lp)
+	ctxLog.Print(context.Background(), "many happy returns from the logger")
 	assert.Equal(1, logs.Len(), "must be equal")
 	ent := logs.All()[0]
 	assert.Contains(ent.Message, "many happy returns", "must contain")
@@ -45,6 +65,36 @@ func TestToLogger(t *testing.T) {
 			{Key: "myfield", Type: zapcore.StringType, String: "hassomething"},
 		},
 	)
+}
+
+func TestToLoggerWithSkip(t *testing.T) {
+	assert := assert.New(t)
+	core, logs := observer.New(zap.InfoLevel)
+	lp := log.New(log.Writer(), "", 0)
+	ctxLog := ctxWrapper{l: lp}
+	fields := []zapcore.Field{
+		{Type: zapcore.StringType, Key: "myfield", String: "hassomething"},
+	}
+	logger := zap.New(core).With(fields...)
+	ToLoggerWithSkip(logger, zapcore.WarnLevel, 1, lp)
+	ctxLog.Print(context.Background(), "many happy returns from the logger")
+	assert.Equal(1, logs.Len(), "must be equal")
+	ent := logs.All()[0]
+	assert.Contains(ent.Message, "many happy returns", "must contain")
+	assert.ElementsMatch(
+		ent.Context,
+		[]zap.Field{
+			{Key: "myfield", Type: zapcore.StringType, String: "hassomething"},
+		},
+	)
+}
+
+type ctxWrapper struct {
+	l *log.Logger
+}
+
+func (r ctxWrapper) Print(ctx context.Context, s string) {
+	r.l.Print(s)
 }
 
 func TestToNew(t *testing.T) {
